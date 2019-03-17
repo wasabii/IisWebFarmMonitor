@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="IisWebFarmMonitor" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+  <Parameters>
+    <Parameter Name="WebService_InstanceCount" DefaultValue="-1" />
+    <Parameter Name="MonitorActorService_PartitionCount" DefaultValue="10" />
+    <Parameter Name="MonitorActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="MonitorActorService_TargetReplicaSetSize" DefaultValue="3" />
+  </Parameters>
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="IisWebFarmMonitor.ServicesPkg" ServiceManifestVersion="1.0.0" />
+    <ConfigOverrides />
+  </ServiceManifestImport>
+  <DefaultServices>
+    <Service Name="WebService" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="WebServiceType" InstanceCount="[WebService_InstanceCount]">
+        <SingletonPartition />
+      </StatelessService>
+    </Service>
+    <Service Name="MonitorActorService" GeneratedIdRef="4955cdd8-1a3a-4153-9aa6-75f478c10f47|Persisted">
+      <StatefulService ServiceTypeName="MonitorActorServiceType" TargetReplicaSetSize="[MonitorActorService_TargetReplicaSetSize]" MinReplicaSetSize="[MonitorActorService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[MonitorActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
+  </DefaultServices>
+</ApplicationManifest>
