@@ -81,7 +81,7 @@ namespace IisWebFarmMonitor.Services
 
             if (string.IsNullOrWhiteSpace(config.IisServerName))
                 return;
-            if (string.IsNullOrWhiteSpace(config.WebServerName))
+            if (string.IsNullOrWhiteSpace(config.WebFarmName))
                 return;
 
             var endpoints = await GetServiceEndpointsAsync(config);
@@ -90,13 +90,54 @@ namespace IisWebFarmMonitor.Services
 
             await Task.Run(() =>
             {
-                var serverManager = ServerManager.OpenRemote(config.IisServerName);
-                if (serverManager == null)
-                    return;
+                using (var serverManager = ServerManager.OpenRemote(config.IisServerName))
+                {
+                    var applicationHostConfig = serverManager.GetApplicationHostConfiguration();
+                    if (applicationHostConfig == null)
+                        return;
 
-                var serverConfig = serverManager.GetApplicationHostConfiguration();
-                if (serverConfig == null)
-                    return;
+                    var webFarms = applicationHostConfig.GetSection("webFarms")?.GetCollection();
+                    if (webFarms == null)
+                        return;
+
+                    var webFarm = webFarms.FirstOrDefault(i => (string)i.GetAttributeValue("name") == config.WebFarmName);
+                    if (webFarm == null)
+                        return;
+
+                    var servers = webFarm.GetCollection()?.ToDictionary(i => (string)i.GetAttributeValue("address"));
+                    if (servers == null)
+                        return;
+
+                    foreach (var endpoint in endpoints)
+                    {
+                        // find or create server reference
+                        var server = servers.GetOrDefault(endpoint.Host);
+                        if (server == null)
+                        {
+                            server = webFarm.GetCollection().CreateElement("server");
+                            server.SetAttributeValue("address", endpoint.Host);
+                            webFarm.GetCollection().Add(server);
+                        }
+
+                        // update server settings
+                        server.SetAttributeValue("address", endpoint.Host);
+
+                        // update ARR settings
+                        var arr = server.GetChildElement("applicationRequestRouting");
+                        arr.SetAttributeValue("httpPort", endpoint.Scheme == "http" ? endpoint.Port : 80);
+                        arr.SetAttributeValue("httpsPort", endpoint.Scheme == "https" ? endpoint.Port : 443);
+
+                        // remove from dictionary, signifies completion
+                        servers.Remove(endpoint.Host);
+                    }
+
+                    // remove remaining servers
+                    foreach (var server in servers)
+                        server.Value.Delete();
+
+                    // save changes
+                    serverManager.CommitChanges();
+                }
             });
         }
 
@@ -146,13 +187,16 @@ namespace IisWebFarmMonitor.Services
                 if (address == null)
                     continue;
 
-                var endpointAddress = address.Endpoints.GetOrDefault(config.ServiceEndpointName ?? address.Endpoints.Keys.FirstOrDefault());
+                var endpointAddress = address.Endpoints.GetOrDefault(config.EndpointName ?? address.Endpoints.Keys.FirstOrDefault());
                 if (endpointAddress != null)
                     if (endpointAddress.Scheme == "http" || endpointAddress.Scheme == "https")
                         yield return endpointAddress;
             }
         }
 
+        /// <summary>
+        /// Describes the service endpoint address data.
+        /// </summary>
         class Address
         {
 
