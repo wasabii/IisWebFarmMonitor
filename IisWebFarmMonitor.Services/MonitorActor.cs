@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Cogito.Collections;
+
 using IisWebFarmMonitor.Fabric.Interfaces;
 
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.Web.Administration;
+
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace IisWebFarmMonitor.Services
 {
@@ -63,6 +65,14 @@ namespace IisWebFarmMonitor.Services
                 config.Interval ?? TimeSpan.FromSeconds(30));
         }
 
+        /// <summary>
+        /// Invoked when a reminder is triggered.
+        /// </summary>
+        /// <param name="reminderName"></param>
+        /// <param name="state"></param>
+        /// <param name="dueTime"></param>
+        /// <param name="period"></param>
+        /// <returns></returns>
         public async Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
             var config = await GetConfig();
@@ -90,6 +100,11 @@ namespace IisWebFarmMonitor.Services
             });
         }
 
+        /// <summary>
+        /// Returns the set of all endpoint URIs being listened to for the specified configuration.
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
         async Task<IEnumerable<Uri>> GetServiceEndpointsAsync(MonitorConfiguration config)
         {
             if (config == null)

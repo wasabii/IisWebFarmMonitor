@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using IisWebFarmMonitor.Fabric.Interfaces;
@@ -15,7 +16,7 @@ namespace IisWebFarmMonitor.Services
     {
 
         [HttpGet("{*serviceName}")]
-        public async Task<IActionResult> GetConfig(string serviceName)
+        public async Task<IActionResult> GetMonitor(string serviceName)
         {
             if (string.IsNullOrWhiteSpace(serviceName))
                 return BadRequest();
@@ -26,7 +27,7 @@ namespace IisWebFarmMonitor.Services
         }
 
         [HttpPut("{*serviceName}")]
-        public async Task<IActionResult> SetConfig(string serviceName, [FromBody] MonitorConfiguration config)
+        public async Task<IActionResult> SetMonitor(string serviceName, [FromBody] MonitorConfiguration config)
         {
             if (string.IsNullOrWhiteSpace(serviceName))
                 return BadRequest();
@@ -34,6 +35,19 @@ namespace IisWebFarmMonitor.Services
             var n = new Uri("fabric:/" + serviceName);
             var p = ActorProxy.Create<IMonitorActor>(new ActorId(n.ToString()));
             return Ok(await p.SetConfig(config));
+        }
+
+        [HttpDelete("{*serviceName}")]
+        public async Task<IActionResult> DeleteMonitor(string serviceName)
+        {
+            if (string.IsNullOrWhiteSpace(serviceName))
+                return BadRequest();
+
+            var n = new Uri("fabric:/" + serviceName);
+            var p = ActorProxy.Create<IMonitorActor>(new ActorId(n.ToString()));
+            var s = ActorServiceProxy.Create(p.GetActorReference().ServiceUri, p.GetActorId());
+            await s.DeleteActorAsync(p.GetActorId(), CancellationToken.None);
+            return Ok();
         }
 
     }
