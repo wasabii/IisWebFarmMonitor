@@ -14,12 +14,12 @@ namespace IisWebFarmMonitor.Fabric.Interfaces
         /// <summary>
         /// Name of the web farm server to be configured.
         /// </summary>
-        public string WebServerName { get; set; }
+        public string WebFarmName { get; set; }
 
         /// <summary>
         /// Optional name of the service endpoint to push.
         /// </summary>
-        public string ServiceEndpointName { get; set; }
+        public string EndpointName { get; set; }
 
         /// <summary>
         /// Time between refreshes.

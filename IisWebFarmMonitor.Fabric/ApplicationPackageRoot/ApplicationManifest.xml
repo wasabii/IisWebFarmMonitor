@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="IisWebFarmMonitor" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
+    <Parameter Name="AccountName" DefaultValue="" />
+    <Parameter Name="AccountPassword" DefaultValue="" />
     <Parameter Name="WebService_InstanceCount" DefaultValue="-1" />
     <Parameter Name="MonitorActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="MonitorActorService_MinReplicaSetSize" DefaultValue="3" />
@@ -9,6 +11,9 @@
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="IisWebFarmMonitor.ServicesPkg" ServiceManifestVersion="1.0.0" />
     <ConfigOverrides />
+    <Policies>
+      <RunAsPolicy CodePackageRef="Code" UserRef="User" />
+    </Policies>
   </ServiceManifestImport>
   <DefaultServices>
     <Service Name="WebService" ServicePackageActivationMode="ExclusiveProcess">
@@ -22,4 +27,9 @@
       </StatefulService>
     </Service>
   </DefaultServices>
+  <Principals>
+    <Users>
+      <User Name="User" AccountType="DomainUser" AccountName="[AccountName]" Password="[AccountPassword]" />
+    </Users>
+  </Principals>
 </ApplicationManifest>
