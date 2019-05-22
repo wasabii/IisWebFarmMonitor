@@ -3,14 +3,25 @@
   <Parameters>
     <Parameter Name="AccountName" DefaultValue="" />
     <Parameter Name="AccountPassword" DefaultValue="" />
-    <Parameter Name="WebService_InstanceCount" DefaultValue="-1" />
-    <Parameter Name="MonitorActorService_PartitionCount" DefaultValue="10" />
-    <Parameter Name="MonitorActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="Seq:ServerUrl" DefaultValue="" />
+    <Parameter Name="Seq:ApiKey" DefaultValue="" />
+    <Parameter Name="WebService_InstanceCount" DefaultValue="1" />
+    <Parameter Name="MonitorActorService_PartitionCount" DefaultValue="3" />
+    <Parameter Name="MonitorActorService_MinReplicaSetSize" DefaultValue="2" />
     <Parameter Name="MonitorActorService_TargetReplicaSetSize" DefaultValue="3" />
   </Parameters>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="IisWebFarmMonitor.ServicesPkg" ServiceManifestVersion="1.0.0" />
-    <ConfigOverrides />
+    <ConfigOverrides>
+      <ConfigOverride Name="Config">
+        <Settings>
+          <Section Name="Seq">
+            <Parameter Name="ServerUrl" Value="[Seq:ServerUrl]" />
+            <Parameter Name="ApiKey" Value="[Seq:ApiKey]" />
+          </Section>
+        </Settings>
+      </ConfigOverride>
+    </ConfigOverrides>
     <Policies>
       <RunAsPolicy CodePackageRef="Code" UserRef="User" />
     </Policies>

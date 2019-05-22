@@ -20,7 +20,7 @@ namespace IisWebFarmMonitor.Services
 {
 
     [StatePersistence(StatePersistence.Persisted)]
-    public class MonitorActor : Microsoft.ServiceFabric.Actors.Runtime.Actor, IMonitorActor, IRemindable
+    public class MonitorActor : Actor, IMonitorActor, IRemindable
     {
 
         readonly ILogger logger;
@@ -57,6 +57,8 @@ namespace IisWebFarmMonitor.Services
         /// <returns></returns>
         async Task ConfigChanged(MonitorConfiguration config)
         {
+            logger.Information("Configuration for {ServiceName} changed to {@Config}.", this.GetActorId().GetStringId(), config);
+
             try
             {
                 var existing = GetReminder("Interval");
@@ -88,6 +90,8 @@ namespace IisWebFarmMonitor.Services
         /// <returns></returns>
         public async Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
+            logger.Information("Attempting to push server farm settings for {WebFarmName}.", this.GetActorId().GetStringId());
+
             try
             {
                 var config = await GetConfig();
@@ -105,7 +109,7 @@ namespace IisWebFarmMonitor.Services
 
                 var endpoints = await GetServiceEndpointsAsync(config);
                 if (endpoints == null)
-                    return;
+                    throw new InvalidOperationException("Unable to obtain service endpoints.");
 
                 await Task.Run(() =>
                 {
@@ -129,22 +133,35 @@ namespace IisWebFarmMonitor.Services
 
                         foreach (var endpoint in endpoints)
                         {
+                            logger.Debug("Checking server {ServerName}.", endpoint.Host);
+
                             // find or create server reference
                             var server = servers.GetOrDefault(endpoint.Host);
                             if (server == null)
                             {
+                                logger.Information("Adding server {ServerName}.", endpoint.Host);
+
                                 server = webFarm.GetCollection().CreateElement("server");
                                 server.SetAttributeValue("address", endpoint.Host);
                                 webFarm.GetCollection().Add(server);
                             }
 
-                            // update server settings
-                            server.SetAttributeValue("address", endpoint.Host);
+                            // endpoint port or defaults
+                            var httpPort = endpoint.Scheme == "http" ? endpoint.Port : 80;
+                            var httpsPort = endpoint.Scheme == "https" ? endpoint.Port : 443;
 
-                            // update ARR settings
-                            var arr = server.GetChildElement("applicationRequestRouting");
-                            arr.SetAttributeValue("httpPort", endpoint.Scheme == "http" ? endpoint.Port : 80);
-                            arr.SetAttributeValue("httpsPort", endpoint.Scheme == "https" ? endpoint.Port : 443);
+                            // update server settings
+                            if (server.GetAttributeValue("address")?.ToString() != endpoint.Host ||
+                                server.GetAttributeValue("httpPort")?.ToString() != httpPort.ToString() ||
+                                server.GetAttributeValue("httpsPort")?.ToString() != httpsPort.ToString())
+                            {
+
+                                logger.Information("Updating {ServerName} to {HttpPort}/{HttpsPort}.", endpoint.Host, httpPort, httpsPort);
+
+                                var arr = server.GetChildElement("applicationRequestRouting");
+                                arr.SetAttributeValue("httpPort", httpPort.ToString());
+                                arr.SetAttributeValue("httpsPort", httpsPort.ToString());
+                            }
 
                             // remove from dictionary, signifies completion
                             servers.Remove(endpoint.Host);
@@ -152,7 +169,10 @@ namespace IisWebFarmMonitor.Services
 
                         // remove remaining servers
                         foreach (var server in servers)
+                        {
+                            logger.Information("Removing server {ServerName}.", server.Key);
                             server.Value.Delete();
+                        }
 
                         // save changes
                         serverManager.CommitChanges();

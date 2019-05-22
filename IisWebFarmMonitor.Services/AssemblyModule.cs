@@ -2,6 +2,8 @@
 
 using Cogito.Autofac;
 
+using IisWebFarmMonitor.Services.Configuration;
+
 namespace IisWebFarmMonitor.Services
 {
 
@@ -11,6 +13,7 @@ namespace IisWebFarmMonitor.Services
         protected override void Register(ContainerBuilder builder)
         {
             builder.RegisterFromAttributes(typeof(AssemblyModule).Assembly);
+            builder.RegisterConfigurationBinding<SeqOptions>("Seq");
         }
 
     }

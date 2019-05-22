@@ -7,6 +7,7 @@ using IisWebFarmMonitor.Fabric.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
+using Serilog;
 
 namespace IisWebFarmMonitor.Services
 {
@@ -14,6 +15,11 @@ namespace IisWebFarmMonitor.Services
     [Route("monitors")]
     public class MonitorController : Controller
     {
+
+        public MonitorController(ILogger logger)
+        {
+
+        }
 
         [HttpGet("{*serviceName}")]
         public async Task<IActionResult> GetMonitor(string serviceName)
