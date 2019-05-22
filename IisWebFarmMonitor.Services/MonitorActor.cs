@@ -13,6 +13,7 @@ using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.Web.Administration;
 
 using Newtonsoft.Json;
+using Serilog;
 
 namespace IisWebFarmMonitor.Services
 {
@@ -21,10 +22,18 @@ namespace IisWebFarmMonitor.Services
     public class MonitorActor : Microsoft.ServiceFabric.Actors.Runtime.Actor, IMonitorActor, IRemindable
     {
 
-        public MonitorActor(ActorService actorService, ActorId actorId) :
+        readonly ILogger logger;
+
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="actorService"></param>
+        /// <param name="actorId"></param>
+        /// <param name="logger"></param>
+        public MonitorActor(ActorService actorService, ActorId actorId, ILogger logger) :
             base(actorService, actorId)
         {
-
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<MonitorConfiguration> GetConfig()
@@ -58,11 +67,14 @@ namespace IisWebFarmMonitor.Services
                 // no big deal
             }
 
-            await RegisterReminderAsync(
-                "Interval",
-                null,
-                TimeSpan.FromSeconds(1),
-                config.Interval ?? TimeSpan.FromSeconds(30));
+            if (config != null)
+            {
+                await RegisterReminderAsync(
+                    "Interval",
+                    null,
+                    TimeSpan.FromSeconds(1),
+                    config.Interval ?? TimeSpan.FromSeconds(30));
+            }
         }
 
         /// <summary>
@@ -75,29 +87,42 @@ namespace IisWebFarmMonitor.Services
         /// <returns></returns>
         public async Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
-            var config = await GetConfig();
-            if (config == null)
-                return;
-
-            if (string.IsNullOrWhiteSpace(config.IisServerName))
-                return;
-            if (string.IsNullOrWhiteSpace(config.WebServerName))
-                return;
-
-            var endpoints = await GetServiceEndpointsAsync(config);
-            if (endpoints == null)
-                return;
-
-            await Task.Run(() =>
+            try
             {
-                var serverManager = ServerManager.OpenRemote(config.IisServerName);
-                if (serverManager == null)
+                var config = await GetConfig();
+                if (config == null)
+                {
+                    await ConfigChanged(null);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(config.IisServerName))
+                    throw new InvalidOperationException("Missing IisServerName configuration.");
+
+                if (string.IsNullOrWhiteSpace(config.WebServerName))
+                    throw new InvalidOperationException("Missing WebServerName configuration.");
+
+                var endpoints = await GetServiceEndpointsAsync(config);
+                if (endpoints == null)
                     return;
 
-                var serverConfig = serverManager.GetApplicationHostConfiguration();
-                if (serverConfig == null)
-                    return;
-            });
+                await Task.Run(() =>
+                {
+                    var serverManager = ServerManager.OpenRemote(config.IisServerName);
+                    if (serverManager == null)
+                        throw new InvalidOperationException("Null reference attempting to open IIS server manager.");
+
+                    var serverConfig = serverManager.GetApplicationHostConfiguration();
+                    if (serverConfig == null)
+                        throw new InvalidOperationException("Null reference obtaining application host configuration.");
+
+                    logger.Debug("Set config here.");
+                });
+            }
+            catch (Exception e)
+            {
+                logger.Error(e, "Exception setting remote IIS server farm.");
+            }
         }
 
         /// <summary>
