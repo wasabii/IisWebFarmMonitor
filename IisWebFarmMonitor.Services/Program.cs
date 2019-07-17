@@ -4,7 +4,10 @@ using Autofac;
 using Autofac.Integration.ServiceFabric;
 
 using Cogito.Autofac;
+using Cogito.Autofac.DependencyInjection;
 using Cogito.ServiceFabric.AspNetCore.Kestrel.Autofac;
+
+using Microsoft.Extensions.DependencyInjection;
 
 namespace IisWebFarmMonitor.Services
 {
@@ -24,6 +27,7 @@ namespace IisWebFarmMonitor.Services
             builder.RegisterServiceFabricSupport();
             builder.RegisterStatelessKestrelWebService<WebService>("WebServiceType");
             builder.RegisterActor<MonitorActor>();
+            builder.Populate(s => s.AddLogging());
 
             using (builder.Build())
                 Thread.Sleep(Timeout.Infinite);
