@@ -80,7 +80,7 @@ namespace IisWebFarmMonitor.Services
             }
 
             // register new reminders
-            if (config != null)
+            if (config != null && config.Endpoints != null)
             {
                 foreach (var endpoint in endpoints)
                 {
@@ -192,7 +192,6 @@ namespace IisWebFarmMonitor.Services
                                 server.GetAttributeValue("httpPort")?.ToString() != httpPort.ToString() ||
                                 server.GetAttributeValue("httpsPort")?.ToString() != httpsPort.ToString())
                             {
-
                                 logger.Information("Updating {ServerName} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
 
                                 var arr = server.GetChildElement("applicationRequestRouting");
