@@ -9,12 +9,12 @@ namespace IisWebFarmMonitor.Fabric.Interfaces
         /// <summary>
         /// Name of the remote IIS server.
         /// </summary>
-        public string IisServerName { get; set; }
+        public string ServerName { get; set; }
 
         /// <summary>
         /// Name of the web farm server to be configured.
         /// </summary>
-        public string WebFarmName { get; set; }
+        public string ServerFarmName { get; set; }
 
         /// <summary>
         /// Time between refreshes.

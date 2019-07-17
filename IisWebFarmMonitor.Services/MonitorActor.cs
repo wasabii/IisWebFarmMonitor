@@ -129,15 +129,15 @@ namespace IisWebFarmMonitor.Services
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(endpointConfig.IisServerName))
+                if (string.IsNullOrWhiteSpace(endpointConfig.ServerName))
                 {
-                    logger.Error("Missing IisServerName configuration for {EndpointName}.", endpointName);
+                    logger.Error("Missing ServerName configuration for {EndpointName}.", endpointName);
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(endpointConfig.WebFarmName))
+                if (string.IsNullOrWhiteSpace(endpointConfig.ServerFarmName))
                 {
-                    logger.Error("Missing WebServerName configuration for {EndpointName}.", endpointName);
+                    logger.Error("Missing ServerFarmName configuration for {EndpointName}.", endpointName);
                     return;
                 }
 
@@ -150,7 +150,7 @@ namespace IisWebFarmMonitor.Services
 
                 await Task.Run(() =>
                 {
-                    using (var serverManager = ServerManager.OpenRemote(endpointConfig.IisServerName))
+                    using (var serverManager = ServerManager.OpenRemote(endpointConfig.ServerName))
                     {
                         var applicationHostConfig = serverManager.GetApplicationHostConfiguration();
                         if (applicationHostConfig == null)
@@ -160,7 +160,7 @@ namespace IisWebFarmMonitor.Services
                         if (webFarms == null)
                             return;
 
-                        var webFarm = webFarms.FirstOrDefault(i => (string)i.GetAttributeValue("name") == endpointConfig.WebFarmName);
+                        var webFarm = webFarms.FirstOrDefault(i => (string)i.GetAttributeValue("name") == endpointConfig.ServerFarmName);
                         if (webFarm == null)
                             return;
 
