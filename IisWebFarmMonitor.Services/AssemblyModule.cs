@@ -1,6 +1,7 @@
 ﻿using Autofac;
 
 using Cogito.Autofac;
+using Cogito.Extensions.Configuration.Autofac;
 
 using IisWebFarmMonitor.Services.Configuration;
 
