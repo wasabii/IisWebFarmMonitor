@@ -205,7 +205,7 @@ namespace IisWebFarmMonitor.Services
                     }
 
                     logger.Information(
-                        "Attempting to push server farm settings for {ServiceName}:{Endpoint} to {ServerName}/{ServerFarmName}.",
+                        "Attempting to push server farm settings for {ServiceName}:{EndpointName} to {ServerName}/{ServerFarmName}.",
                         this.GetActorId().GetStringId(),
                         endpointName,
                         endpointConfig.ServerName,
