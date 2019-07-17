@@ -148,8 +148,6 @@ namespace IisWebFarmMonitor.Services
         {
             using (LogContext.PushProperty("ReminderName", reminderName))
             {
-                logger.Information("Attempting to push server farm settings for {WebFarmName}.", this.GetActorId().GetStringId());
-
                 try
                 {
                     var config = await GetConfig();
@@ -205,6 +203,13 @@ namespace IisWebFarmMonitor.Services
                         logger.Error("Unable to obtain service endpoints for {EndpointName}.", endpointName);
                         return;
                     }
+
+                    logger.Information(
+                        "Attempting to push server farm settings for {ServiceName}:{Endpoint} to {ServerName}/{ServerFarmName}.",
+                        this.GetActorId().GetStringId(),
+                        endpointName,
+                        endpointConfig.ServerName,
+                        endpointConfig.ServerFarmName);
 
                     await Task.Run(() =>
                     {
