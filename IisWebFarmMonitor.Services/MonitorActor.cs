@@ -238,20 +238,25 @@ namespace IisWebFarmMonitor.Services
                                 webFarm.GetCollection().Add(server);
                             }
 
-                            // endpoint port or defaults
-                            var httpPort = endpoint.Address.Scheme == "http" ? endpoint.Address.Port : 80;
-                            var httpsPort = endpoint.Address.Scheme == "https" ? endpoint.Address.Port : 443;
-
                             // update server settings
-                            if (server.GetAttributeValue("address")?.ToString() != endpoint.Address.Host ||
-                                server.GetAttributeValue("httpPort")?.ToString() != httpPort.ToString() ||
-                                server.GetAttributeValue("httpsPort")?.ToString() != httpsPort.ToString())
+                            if (server.GetAttributeValue("address")?.ToString() != endpoint.Address.Host)
                             {
-                                logger.Information("Updating {ServerName} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
+                                // find new port values
+                                var httpPort = endpoint.Address.Scheme == "http" ? endpoint.Address.Port : 80;
+                                var httpsPort = endpoint.Address.Scheme == "https" ? endpoint.Address.Port : 443;
 
-                                var arr = server.GetChildElement("applicationRequestRouting");
-                                arr.SetAttributeValue("httpPort", httpPort.ToString());
-                                arr.SetAttributeValue("httpsPort", httpsPort.ToString());
+                                // find current port values
+                                var applicationRequestRouting = server.GetChildElement("applicationRequestRouting");
+                                var currentHttpPort = (int)server.GetAttributeValue("httpPort");
+                                var currentHttpsPort = (int)server.GetAttributeValue("httpsPort");
+
+                                // current port values need to be updated
+                                if (httpPort != currentHttpPort || httpsPort != currentHttpsPort)
+                                {
+                                    logger.Information("Updating {ServerName} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
+                                    applicationRequestRouting.SetAttributeValue("httpPort", httpPort);
+                                    applicationRequestRouting.SetAttributeValue("httpsPort", httpsPort);
+                                }
                             }
 
                             // remove from dictionary, signifies completion
