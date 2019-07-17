@@ -233,15 +233,15 @@ namespace IisWebFarmMonitor.Services
 
                             foreach (var endpoint in endpoints)
                             {
-                                using (LogContext.PushProperty("ServerName", endpoint.Address.Host))
+                                using (LogContext.PushProperty("ServiceHost", endpoint.Address.Host))
                                 {
-                                    logger.Debug("Checking server {ServerName}.", endpoint.Address.Host);
+                                    logger.Debug("Checking {ServiceHost}.", endpoint.Address.Host);
 
                                     // find or create server reference
                                     var server = servers.GetOrDefault(endpoint.Address.Host);
                                     if (server == null)
                                     {
-                                        logger.Information("Adding server {ServerName}.", endpoint.Address.Host);
+                                        logger.Information("Adding server {ServiceHost}.", endpoint.Address.Host);
 
                                         server = webFarm.GetCollection().CreateElement("server");
                                         server.SetAttributeValue("address", endpoint.Address.Host);
@@ -260,7 +260,7 @@ namespace IisWebFarmMonitor.Services
                                     // current port values need to be updated
                                     if (httpPort != currentHttpPort || httpsPort != currentHttpsPort)
                                     {
-                                        logger.Information("Updating {ServerName} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
+                                        logger.Information("Updating {ServiceHost} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
                                         applicationRequestRouting.SetAttributeValue("httpPort", httpPort.ToString());
                                         applicationRequestRouting.SetAttributeValue("httpsPort", httpsPort.ToString());
                                     }
