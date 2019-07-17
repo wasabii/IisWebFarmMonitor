@@ -261,8 +261,8 @@ namespace IisWebFarmMonitor.Services
                                     if (httpPort != currentHttpPort || httpsPort != currentHttpsPort)
                                     {
                                         logger.Information("Updating {ServiceHost} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
-                                        applicationRequestRouting.SetAttributeValue("httpPort", httpPort.ToString());
-                                        applicationRequestRouting.SetAttributeValue("httpsPort", httpsPort.ToString());
+                                        applicationRequestRouting.SetAttributeValue("httpPort", httpPort);
+                                        applicationRequestRouting.SetAttributeValue("httpsPort", httpsPort);
                                     }
 
                                     // remove from dictionary, signifies completion
@@ -273,7 +273,7 @@ namespace IisWebFarmMonitor.Services
                             // remove remaining servers
                             foreach (var server in servers)
                             {
-                                logger.Information("Removing server {ServerName}.", server.Key);
+                                logger.Information("Removing server {ServiceHost}.", server.Key);
                                 server.Value.Delete();
                             }
 
