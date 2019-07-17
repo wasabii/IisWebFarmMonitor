@@ -24,6 +24,8 @@ namespace IisWebFarmMonitor.Services
     public class MonitorActor : Actor, IMonitorActor, IRemindable
     {
 
+        const string EndpointReminderFormat = "Endpoint_{0}";
+
         readonly ILogger logger;
 
         /// <summary>
@@ -115,7 +117,7 @@ namespace IisWebFarmMonitor.Services
 
             // unregister all known endpoint reminders
             foreach (var endpoint in endpoints)
-                await TryUnregisterReminderAsync("Reminder_" + endpoint.Name);
+                await TryUnregisterReminderAsync(string.Format(EndpointReminderFormat, endpoint.Name));
 
             // register new reminders
             if (config != null && config.Endpoints != null)
@@ -125,7 +127,7 @@ namespace IisWebFarmMonitor.Services
                     var c = config.Endpoints?.GetOrDefault(endpoint.Name);
                     if (c != null && c.ServerName != null && c.ServerFarmName != null)
                         await RegisterReminderAsync(
-                            "Reminder_" + endpoint.Name,
+                            string.Format(EndpointReminderFormat, endpoint.Name),
                             Encoding.UTF8.GetBytes(endpoint.Name),
                             TimeSpan.FromSeconds(1),
                             c.Interval ?? TimeSpan.FromSeconds(30));
