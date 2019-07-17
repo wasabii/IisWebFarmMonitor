@@ -7,6 +7,7 @@ using IisWebFarmMonitor.Fabric.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
+
 using Serilog;
 
 namespace IisWebFarmMonitor.Services
@@ -16,6 +17,10 @@ namespace IisWebFarmMonitor.Services
     public class MonitorController : Controller
     {
 
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="logger"></param>
         public MonitorController(ILogger logger)
         {
 
