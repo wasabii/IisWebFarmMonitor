@@ -38,24 +38,24 @@
 
     <ItemGroup>
         <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
-        <PackageReference Include="Cogito.AspNetCore.Autofac" Version="1.3.0" />
-        <PackageReference Include="Cogito.Autofac" Version="1.2.1" />
+        <PackageReference Include="Cogito.AspNetCore.Autofac" Version="1.3.2" />
+        <PackageReference Include="Cogito.Autofac" Version="1.2.17" />
         <PackageReference Include="Cogito.Core" Version="3.0.0" />
         <PackageReference Include="Cogito.Extensions.Logging.Serilog.Autofac" Version="1.1.0" />
         <PackageReference Include="Cogito.Serilog.Autofac" Version="1.0.0" />
-        <PackageReference Include="Cogito.ServiceFabric.AspNetCore.Kestrel.Autofac" Version="1.3.2" />
-        <PackageReference Include="Cogito.ServiceFabric.Configuration" Version="1.3.2" />
+        <PackageReference Include="Cogito.ServiceFabric.AspNetCore.Kestrel.Autofac" Version="1.3.3" />
+        <PackageReference Include="Cogito.ServiceFabric.Configuration" Version="1.3.3" />
         <PackageReference Include="Microsoft.AspNetCore" Version="2.1.2" />
         <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Formatters.Json" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
-        <PackageReference Include="Microsoft.ServiceFabric" Version="6.4.658" />
-        <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.658" />
-        <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Abstractions" Version="3.3.658" />
-        <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="3.3.658" />
-        <PackageReference Include="Microsoft.ServiceFabric.Data" Version="3.3.658" />
-        <PackageReference Include="Microsoft.ServiceFabric.Services" Version="3.3.658" />
+        <PackageReference Include="Microsoft.ServiceFabric" Version="6.5.641" />
+        <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.4.641" />
+        <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Abstractions" Version="3.4.641" />
+        <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="3.4.641" />
+        <PackageReference Include="Microsoft.ServiceFabric.Data" Version="3.4.641" />
+        <PackageReference Include="Microsoft.ServiceFabric.Services" Version="3.4.641" />
     </ItemGroup>
 
     <ItemGroup>
