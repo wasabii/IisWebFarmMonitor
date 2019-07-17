@@ -250,8 +250,8 @@ namespace IisWebFarmMonitor.Services
                                 server.GetCollection().Add(applicationRequestRouting);
                             }
 
-                            var currentHttpPort = (int)server.GetAttributeValue("httpPort");
-                            var currentHttpsPort = (int)server.GetAttributeValue("httpsPort");
+                            var currentHttpPort = (int?)server.GetAttributeValue("httpPort") ?? 0;
+                            var currentHttpsPort = (int?)server.GetAttributeValue("httpsPort") ?? 0;
 
                             // current port values need to be updated
                             if (httpPort != currentHttpPort || httpsPort != currentHttpsPort)
