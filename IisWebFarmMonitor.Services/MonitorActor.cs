@@ -247,8 +247,8 @@ namespace IisWebFarmMonitor.Services
                             if (applicationRequestRouting == null)
                                 throw new InvalidOperationException("Missing applicationRequestRouting element.");
 
-                            var currentHttpPort = (int?)server.GetAttributeValue("httpPort") ?? 0;
-                            var currentHttpsPort = (int?)server.GetAttributeValue("httpsPort") ?? 0;
+                            var currentHttpPort = (int?)applicationRequestRouting.GetAttributeValue("httpPort") ?? 0;
+                            var currentHttpsPort = (int?)applicationRequestRouting.GetAttributeValue("httpsPort") ?? 0;
 
                             // current port values need to be updated
                             if (httpPort != currentHttpPort || httpsPort != currentHttpsPort)
