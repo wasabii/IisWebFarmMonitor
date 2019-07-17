@@ -262,7 +262,7 @@ namespace IisWebFarmMonitor.Services
         {
             var endpoints = new List<(string, Uri)>();
 
-            using (var client = new FabricClient(FabricClientRole.User))
+            using (var client = new FabricClient())
             {
                 var service = await client.ServiceManager.GetServiceDescriptionAsync(new Uri(Id.GetStringId()));
                 if (service == null)
