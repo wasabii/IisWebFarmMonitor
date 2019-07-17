@@ -18,7 +18,7 @@ before_build:
   - dotnet restore
 
 build_script:
-  - cmd: msbuild.exe IisWebFarmMonitor.Fabric/IisWebFarmMonitor.csproj /t:Package
+  - cmd: msbuild.exe IisWebFarmMonitor.Fabric/IisWebFarmMonitor.Fabric.sfproj /t:Package
   - ps: .\Update-PackageVersion.ps1 -PackagePath "$($env:BuildPath)\IisWebFarmMonitor.Fabric\pkg\$($env:Configuration)" -Version $env:GitVersion_NuGetVersion
 
 after_build:
