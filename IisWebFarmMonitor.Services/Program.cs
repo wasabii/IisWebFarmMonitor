@@ -63,7 +63,7 @@ namespace IisWebFarmMonitor.Services
             builder.Populate(s => s.AddLogging());
 
             using (builder.Build())
-                Thread.Sleep(Timeout.Infinite);
+                await Task.Delay(Timeout.Infinite);
         }
 
     }
