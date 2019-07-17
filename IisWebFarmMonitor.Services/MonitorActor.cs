@@ -38,15 +38,40 @@ namespace IisWebFarmMonitor.Services
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Populates a configuration object with any missing endpoints.
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        async Task<MonitorConfiguration> AddMissingEndpoints(MonitorConfiguration config)
+        {
+            var endpoints = await GetServiceEndpointsAsync(config);
+            if (endpoints == null)
+                return config;
+
+            if (config.Endpoints == null)
+                config.Endpoints = new Dictionary<string, MonitorEndpointConfiguration>();
+
+            foreach (var endpoint in endpoints)
+                if (config.Endpoints.ContainsKey(endpoint.Name) == false)
+                    config.Endpoints[endpoint.Name] = new MonitorEndpointConfiguration();
+
+            foreach (var endpoint in config.Endpoints.ToList())
+                if (endpoints.Any(i => i.Name == endpoint.Key) == false)
+                    config.Endpoints.Remove(endpoint.Key);
+
+            return config;
+        }
+
         public async Task<MonitorConfiguration> GetConfig()
         {
             var a = await StateManager.TryGetStateAsync<MonitorConfiguration>("Configuration");
-            return a.HasValue ? a.Value : null;
+            return a.HasValue ? await AddMissingEndpoints(a.Value) : null;
         }
 
         public async Task<MonitorConfiguration> SetConfig(MonitorConfiguration config)
         {
-            await StateManager.SetStateAsync("Configuration", config);
+            await StateManager.SetStateAsync("Configuration", await AddMissingEndpoints(config));
             await ConfigChanged(config);
             return await GetConfig();
         }
