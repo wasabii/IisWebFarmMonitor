@@ -238,15 +238,12 @@ namespace IisWebFarmMonitor.Services
                                 webFarm.GetCollection().Add(server);
                             }
 
-                            // find new port values
-                            var httpPort = endpoint.Address.Scheme == "http" ? endpoint.Address.Port : 80;
-                            var httpsPort = endpoint.Address.Scheme == "https" ? endpoint.Address.Port : 443;
-
-                            // find current port values
                             var applicationRequestRouting = server.GetChildElement("applicationRequestRouting");
                             if (applicationRequestRouting == null)
                                 throw new InvalidOperationException("Missing applicationRequestRouting element.");
 
+                            var httpPort = endpoint.Address.Scheme == "http" ? endpoint.Address.Port : 80;
+                            var httpsPort = endpoint.Address.Scheme == "https" ? endpoint.Address.Port : 443;
                             var currentHttpPort = (int?)applicationRequestRouting.GetAttributeValue("httpPort") ?? 0;
                             var currentHttpsPort = (int?)applicationRequestRouting.GetAttributeValue("httpsPort") ?? 0;
 
