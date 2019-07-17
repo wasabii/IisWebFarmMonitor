@@ -77,6 +77,30 @@ namespace IisWebFarmMonitor.Services
         }
 
         /// <summary>
+        /// Attempts to unregister a reminder by name.
+        /// </summary>
+        /// <param name="reminderName"></param>
+        /// <returns></returns>
+        async Task<bool> TryUnregisterReminderAsync(string reminderName)
+        {
+            try
+            {
+                var existing = GetReminder(reminderName);
+                if (existing != null)
+                {
+                    await UnregisterReminderAsync(existing);
+                    return true;
+                }
+            }
+            catch
+            {
+
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Invoked when the configuration is changed.
         /// </summary>
         /// <param name="config"></param>
@@ -91,26 +115,15 @@ namespace IisWebFarmMonitor.Services
 
             // unregister all known endpoint reminders
             foreach (var endpoint in endpoints)
-            {
-                try
-                {
-                    var existing = GetReminder("Reminder_" + endpoint.Name);
-                    if (existing != null)
-                        await UnregisterReminderAsync(existing);
-                }
-                catch
-                {
-                    // no big deal
-                }
-            }
+                await TryUnregisterReminderAsync("Reminder_" + endpoint.Name);
 
             // register new reminders
             if (config != null && config.Endpoints != null)
             {
                 foreach (var endpoint in endpoints)
                 {
-                    var c = config.Endpoints.GetOrDefault(endpoint.Name);
-                    if (c != null)
+                    var c = config.Endpoints?.GetOrDefault(endpoint.Name);
+                    if (c != null && c.ServerName != null && c.ServerFarmName != null)
                         await RegisterReminderAsync(
                             "Reminder_" + endpoint.Name,
                             Encoding.UTF8.GetBytes(endpoint.Name),
@@ -137,7 +150,7 @@ namespace IisWebFarmMonitor.Services
                 var config = await GetConfig();
                 if (config == null)
                 {
-                    await ConfigChanged(null);
+                    await TryUnregisterReminderAsync(reminderName);
                     return;
                 }
 
@@ -145,18 +158,23 @@ namespace IisWebFarmMonitor.Services
                 if (state == null)
                 {
                     logger.Warning("Missing state for {Reminder}. Please reconfigure service.", reminderName);
+                    await TryUnregisterReminderAsync(reminderName);
                     return;
                 }
 
                 // reminder is fired for a specific endpoint
                 var endpointName = Encoding.UTF8.GetString(state);
                 if (endpointName == null)
+                {
+                    await TryUnregisterReminderAsync(reminderName);
                     return;
+                }
 
                 // find configuration for endpoint
                 var endpointConfig = config.Endpoints?.GetOrDefault(endpointName);
                 if (endpointConfig == null)
                 {
+                    await TryUnregisterReminderAsync(reminderName);
                     logger.Warning("No configuration for {EndpointName}.", endpointName);
                     return;
                 }
@@ -164,18 +182,21 @@ namespace IisWebFarmMonitor.Services
                 if (string.IsNullOrWhiteSpace(endpointConfig.ServerName))
                 {
                     logger.Error("Missing ServerName configuration for {EndpointName}.", endpointName);
+                    await TryUnregisterReminderAsync(reminderName);
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(endpointConfig.ServerFarmName))
                 {
                     logger.Error("Missing ServerFarmName configuration for {EndpointName}.", endpointName);
+                    await TryUnregisterReminderAsync(reminderName);
                     return;
                 }
 
                 var endpoints = (await GetServiceEndpointsAsync(config)).Where(i => i.Name == endpointName);
                 if (endpoints == null)
                 {
+                    await TryUnregisterReminderAsync(reminderName);
                     logger.Error("Unable to obtain service endpoints for {EndpointName}.", endpointName);
                     return;
                 }
