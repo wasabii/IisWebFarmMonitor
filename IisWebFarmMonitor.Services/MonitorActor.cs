@@ -16,6 +16,7 @@ using Microsoft.Web.Administration;
 using Newtonsoft.Json;
 
 using Serilog;
+using Serilog.Context;
 
 namespace IisWebFarmMonitor.Services
 {
@@ -145,135 +146,141 @@ namespace IisWebFarmMonitor.Services
         /// <returns></returns>
         public async Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
-            logger.Information("Attempting to push server farm settings for {WebFarmName}.", this.GetActorId().GetStringId());
-
-            try
+            using (LogContext.PushProperty("ReminderName", reminderName))
             {
-                var config = await GetConfig();
-                if (config == null)
-                {
-                    await TryUnregisterReminderAsync(reminderName);
-                    return;
-                }
+                logger.Information("Attempting to push server farm settings for {WebFarmName}.", this.GetActorId().GetStringId());
 
-                // old versions may have bad state
-                if (state == null)
+                try
                 {
-                    logger.Warning("Missing state for {Reminder}. Please reconfigure service.", reminderName);
-                    await TryUnregisterReminderAsync(reminderName);
-                    return;
-                }
-
-                // reminder is fired for a specific endpoint
-                var endpointName = Encoding.UTF8.GetString(state);
-                if (endpointName == null)
-                {
-                    await TryUnregisterReminderAsync(reminderName);
-                    return;
-                }
-
-                // find configuration for endpoint
-                var endpointConfig = config.Endpoints?.GetOrDefault(endpointName);
-                if (endpointConfig == null)
-                {
-                    await TryUnregisterReminderAsync(reminderName);
-                    logger.Warning("No configuration for {EndpointName}.", endpointName);
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(endpointConfig.ServerName))
-                {
-                    logger.Error("Missing ServerName configuration for {EndpointName}.", endpointName);
-                    await TryUnregisterReminderAsync(reminderName);
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(endpointConfig.ServerFarmName))
-                {
-                    logger.Error("Missing ServerFarmName configuration for {EndpointName}.", endpointName);
-                    await TryUnregisterReminderAsync(reminderName);
-                    return;
-                }
-
-                var endpoints = (await GetServiceEndpointsAsync(config)).Where(i => i.Name == endpointName);
-                if (endpoints == null)
-                {
-                    await TryUnregisterReminderAsync(reminderName);
-                    logger.Error("Unable to obtain service endpoints for {EndpointName}.", endpointName);
-                    return;
-                }
-
-                await Task.Run(() =>
-                {
-                    using (var serverManager = ServerManager.OpenRemote(endpointConfig.ServerName))
+                    var config = await GetConfig();
+                    if (config == null)
                     {
-                        var applicationHostConfig = serverManager.GetApplicationHostConfiguration();
-                        if (applicationHostConfig == null)
-                            return;
-
-                        var webFarms = applicationHostConfig.GetSection("webFarms")?.GetCollection();
-                        if (webFarms == null)
-                            return;
-
-                        var webFarm = webFarms.FirstOrDefault(i => (string)i.GetAttributeValue("name") == endpointConfig.ServerFarmName);
-                        if (webFarm == null)
-                            return;
-
-                        var servers = webFarm.GetCollection()?.ToDictionary(i => (string)i.GetAttributeValue("address"));
-                        if (servers == null)
-                            return;
-
-                        foreach (var endpoint in endpoints)
-                        {
-                            logger.Debug("Checking server {ServerName}.", endpoint.Address.Host);
-
-                            // find or create server reference
-                            var server = servers.GetOrDefault(endpoint.Address.Host);
-                            if (server == null)
-                            {
-                                logger.Information("Adding server {ServerName}.", endpoint.Address.Host);
-
-                                server = webFarm.GetCollection().CreateElement("server");
-                                server.SetAttributeValue("address", endpoint.Address.Host);
-                                webFarm.GetCollection().Add(server);
-                            }
-
-                            var applicationRequestRouting = server.GetChildElement("applicationRequestRouting");
-                            if (applicationRequestRouting == null)
-                                throw new InvalidOperationException("Missing applicationRequestRouting element.");
-
-                            var httpPort = endpoint.Address.Scheme == "http" ? endpoint.Address.Port : 80;
-                            var httpsPort = endpoint.Address.Scheme == "https" ? endpoint.Address.Port : 443;
-                            var currentHttpPort = applicationRequestRouting.GetAttributeValue("httpPort")?.ToString().TryParseInt32() ?? 0;
-                            var currentHttpsPort = applicationRequestRouting.GetAttributeValue("httpsPort")?.ToString().TryParseInt32() ?? 0;
-
-                            // current port values need to be updated
-                            if (httpPort != currentHttpPort || httpsPort != currentHttpsPort)
-                            {
-                                logger.Information("Updating {ServerName} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
-                                applicationRequestRouting.SetAttributeValue("httpPort", httpPort.ToString());
-                                applicationRequestRouting.SetAttributeValue("httpsPort", httpsPort.ToString());
-                            }
-
-                            // remove from dictionary, signifies completion
-                            servers.Remove(endpoint.Address.Host);
-                        }
-
-                        // remove remaining servers
-                        foreach (var server in servers)
-                        {
-                            logger.Information("Removing server {ServerName}.", server.Key);
-                            server.Value.Delete();
-                        }
-
-                        // save changes
-                        serverManager.CommitChanges();
+                        await TryUnregisterReminderAsync(reminderName);
+                        return;
                     }
-                });
-            }
-            catch (Exception e)
-            {
-                logger.Error(e, "Exception attempting to update web farm.");
+
+                    // old versions may have bad state
+                    if (state == null)
+                    {
+                        logger.Warning("Missing state for {Reminder}. Please reconfigure service.", reminderName);
+                        await TryUnregisterReminderAsync(reminderName);
+                        return;
+                    }
+
+                    // reminder is fired for a specific endpoint
+                    var endpointName = Encoding.UTF8.GetString(state);
+                    if (endpointName == null)
+                    {
+                        await TryUnregisterReminderAsync(reminderName);
+                        return;
+                    }
+
+                    // find configuration for endpoint
+                    var endpointConfig = config.Endpoints?.GetOrDefault(endpointName);
+                    if (endpointConfig == null)
+                    {
+                        await TryUnregisterReminderAsync(reminderName);
+                        logger.Warning("No configuration for {EndpointName}.", endpointName);
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(endpointConfig.ServerName))
+                    {
+                        logger.Error("Missing ServerName configuration for {EndpointName}.", endpointName);
+                        await TryUnregisterReminderAsync(reminderName);
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(endpointConfig.ServerFarmName))
+                    {
+                        logger.Error("Missing ServerFarmName configuration for {EndpointName}.", endpointName);
+                        await TryUnregisterReminderAsync(reminderName);
+                        return;
+                    }
+
+                    var endpoints = (await GetServiceEndpointsAsync(config)).Where(i => i.Name == endpointName);
+                    if (endpoints == null)
+                    {
+                        await TryUnregisterReminderAsync(reminderName);
+                        logger.Error("Unable to obtain service endpoints for {EndpointName}.", endpointName);
+                        return;
+                    }
+
+                    await Task.Run(() =>
+                    {
+                        using (var serverManager = ServerManager.OpenRemote(endpointConfig.ServerName))
+                        {
+                            var applicationHostConfig = serverManager.GetApplicationHostConfiguration();
+                            if (applicationHostConfig == null)
+                                return;
+
+                            var webFarms = applicationHostConfig.GetSection("webFarms")?.GetCollection();
+                            if (webFarms == null)
+                                return;
+
+                            var webFarm = webFarms.FirstOrDefault(i => (string)i.GetAttributeValue("name") == endpointConfig.ServerFarmName);
+                            if (webFarm == null)
+                                return;
+
+                            var servers = webFarm.GetCollection()?.ToDictionary(i => (string)i.GetAttributeValue("address"));
+                            if (servers == null)
+                                return;
+
+                            foreach (var endpoint in endpoints)
+                            {
+                                using (LogContext.PushProperty("ServerName", endpoint.Address.Host))
+                                {
+                                    logger.Debug("Checking server {ServerName}.", endpoint.Address.Host);
+
+                                    // find or create server reference
+                                    var server = servers.GetOrDefault(endpoint.Address.Host);
+                                    if (server == null)
+                                    {
+                                        logger.Information("Adding server {ServerName}.", endpoint.Address.Host);
+
+                                        server = webFarm.GetCollection().CreateElement("server");
+                                        server.SetAttributeValue("address", endpoint.Address.Host);
+                                        webFarm.GetCollection().Add(server);
+                                    }
+
+                                    var applicationRequestRouting = server.GetChildElement("applicationRequestRouting");
+                                    if (applicationRequestRouting == null)
+                                        throw new InvalidOperationException("Missing applicationRequestRouting element.");
+
+                                    var httpPort = endpoint.Address.Scheme == "http" ? endpoint.Address.Port : 80;
+                                    var httpsPort = endpoint.Address.Scheme == "https" ? endpoint.Address.Port : 443;
+                                    var currentHttpPort = applicationRequestRouting.GetAttributeValue("httpPort")?.ToString().TryParseInt32() ?? 0;
+                                    var currentHttpsPort = applicationRequestRouting.GetAttributeValue("httpsPort")?.ToString().TryParseInt32() ?? 0;
+
+                                    // current port values need to be updated
+                                    if (httpPort != currentHttpPort || httpsPort != currentHttpsPort)
+                                    {
+                                        logger.Information("Updating {ServerName} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
+                                        applicationRequestRouting.SetAttributeValue("httpPort", httpPort.ToString());
+                                        applicationRequestRouting.SetAttributeValue("httpsPort", httpsPort.ToString());
+                                    }
+
+                                    // remove from dictionary, signifies completion
+                                    servers.Remove(endpoint.Address.Host);
+                                }
+                            }
+
+                            // remove remaining servers
+                            foreach (var server in servers)
+                            {
+                                logger.Information("Removing server {ServerName}.", server.Key);
+                                server.Value.Delete();
+                            }
+
+                            // save changes
+                            serverManager.CommitChanges();
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    logger.Error(e, "Exception attempting to update web farm.");
+                }
             }
         }
 
