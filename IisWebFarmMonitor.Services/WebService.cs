@@ -15,7 +15,7 @@ namespace IisWebFarmMonitor.Services
 {
 
     [RegisterAs(typeof(WebService))]
-    public partial class WebService
+    public class WebService
     {
 
         readonly ILifetimeScope parent;

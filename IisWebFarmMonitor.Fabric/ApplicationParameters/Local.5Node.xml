@@ -3,6 +3,10 @@
   <Parameters>
     <Parameter Name="AccountName" Value="" />
     <Parameter Name="AccountPassword" Value="" />
+    <Parameter Name="Seq:ServerUrl" Value="" />
+    <Parameter Name="Seq:ApiKey" Value="" />
     <Parameter Name="MonitorActorService_PartitionCount" Value="1" />
+    <Parameter Name="MonitorActorService_TargetReplicaSetSize" Value="1" />
+    <Parameter Name="MonitorActorService_MinReplicaSetSize" Value="1" />
   </Parameters>
 </Application>

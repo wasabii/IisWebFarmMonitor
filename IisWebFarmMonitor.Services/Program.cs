@@ -1,12 +1,18 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 
 using Autofac;
 using Autofac.Integration.ServiceFabric;
 
+using Cogito.AspNetCore;
+using Cogito.AspNetCore.Autofac;
 using Cogito.Autofac;
 using Cogito.Autofac.DependencyInjection;
+using Cogito.ServiceFabric;
 using Cogito.ServiceFabric.AspNetCore.Kestrel.Autofac;
 
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IisWebFarmMonitor.Services
@@ -20,7 +26,34 @@ namespace IisWebFarmMonitor.Services
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static void Main(string[] args)
+        public static Task Main(string[] args)
+        {
+            return FabricEnvironment.IsFabric ? RunFabric(args) : RunConsole(args);
+        }
+
+        /// <summary>
+        /// Runs the application in Console mode.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        static async Task RunConsole(string[] args)
+        {
+            var builder = new ContainerBuilder();
+            builder.RegisterAllAssemblyModules();
+
+            using (var hostScope = builder.Build())
+                await WebHost.CreateDefaultBuilder(args)
+                    .UseStartup<WebService>(hostScope)
+                    .UseKestrel()
+                    .BuildAndRunAsync();
+        }
+
+        /// <summary>
+        /// Main application entry point.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        static async Task RunFabric(string[] args)
         {
             var builder = new ContainerBuilder();
             builder.RegisterAllAssemblyModules();

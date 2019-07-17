@@ -7,7 +7,7 @@ namespace IisWebFarmMonitor.Services
 {
 
     [RegisterAs(typeof(ILoggerConfigurator))]
-    public class SerilogConfigurator : ILoggerConfigurator
+    class SerilogConfigurator : ILoggerConfigurator
     {
 
         public LoggerConfiguration Apply(LoggerConfiguration configuration)
