@@ -4,7 +4,7 @@ using System.Fabric;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Cogito;
 using Cogito.Collections;
 
 using IisWebFarmMonitor.Fabric.Interfaces;
@@ -244,15 +244,15 @@ namespace IisWebFarmMonitor.Services
 
                             var httpPort = endpoint.Address.Scheme == "http" ? endpoint.Address.Port : 80;
                             var httpsPort = endpoint.Address.Scheme == "https" ? endpoint.Address.Port : 443;
-                            var currentHttpPort = (int?)applicationRequestRouting.GetAttributeValue("httpPort") ?? 0;
-                            var currentHttpsPort = (int?)applicationRequestRouting.GetAttributeValue("httpsPort") ?? 0;
+                            var currentHttpPort = applicationRequestRouting.GetAttributeValue("httpPort")?.ToString().TryParseInt32() ?? 0;
+                            var currentHttpsPort = applicationRequestRouting.GetAttributeValue("httpsPort")?.ToString().TryParseInt32() ?? 0;
 
                             // current port values need to be updated
                             if (httpPort != currentHttpPort || httpsPort != currentHttpsPort)
                             {
                                 logger.Information("Updating {ServerName} to {HttpPort}/{HttpsPort}.", endpoint.Address.Host, httpPort, httpsPort);
-                                applicationRequestRouting.SetAttributeValue("httpPort", httpPort);
-                                applicationRequestRouting.SetAttributeValue("httpsPort", httpsPort);
+                                applicationRequestRouting.SetAttributeValue("httpPort", httpPort.ToString());
+                                applicationRequestRouting.SetAttributeValue("httpsPort", httpsPort.ToString());
                             }
 
                             // remove from dictionary, signifies completion
