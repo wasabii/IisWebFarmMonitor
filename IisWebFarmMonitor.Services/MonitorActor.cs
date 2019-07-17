@@ -245,10 +245,7 @@ namespace IisWebFarmMonitor.Services
                             // find current port values
                             var applicationRequestRouting = server.GetChildElement("applicationRequestRouting");
                             if (applicationRequestRouting == null)
-                            {
-                                applicationRequestRouting = server.GetCollection().CreateElement("applicationRequestRouting");
-                                server.GetCollection().Add(applicationRequestRouting);
-                            }
+                                throw new InvalidOperationException("Missing applicationRequestRouting element.");
 
                             var currentHttpPort = (int?)server.GetAttributeValue("httpPort") ?? 0;
                             var currentHttpsPort = (int?)server.GetAttributeValue("httpsPort") ?? 0;
