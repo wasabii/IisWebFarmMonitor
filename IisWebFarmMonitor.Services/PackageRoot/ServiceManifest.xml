@@ -21,6 +21,7 @@
     <EntryPoint>
       <ExeHost>
         <Program>IisWebFarmMonitor.Services.exe</Program>
+        <ConsoleRedirection FileMaxSizeInKb="8192" />
       </ExeHost>
     </EntryPoint>
   </CodePackage>

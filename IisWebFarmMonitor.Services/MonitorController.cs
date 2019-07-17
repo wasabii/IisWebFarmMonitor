@@ -17,13 +17,15 @@ namespace IisWebFarmMonitor.Services
     public class MonitorController : Controller
     {
 
+        readonly ILogger logger;
+
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="logger"></param>
         public MonitorController(ILogger logger)
         {
-
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpGet("{*serviceName}")]
