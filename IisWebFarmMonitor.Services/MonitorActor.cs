@@ -116,6 +116,13 @@ namespace IisWebFarmMonitor.Services
                     return;
                 }
 
+                // old versions may have bad state
+                if (state == null)
+                {
+                    logger.Warning("Missing state for {Reminder}. Please reconfigure service.", reminderName);
+                    return;
+                }
+
                 // reminder is fired for a specific endpoint
                 var endpointName = Encoding.UTF8.GetString(state);
                 if (endpointName == null)
