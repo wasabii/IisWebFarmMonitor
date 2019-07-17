@@ -92,9 +92,9 @@ namespace IisWebFarmMonitor.Services
                     return true;
                 }
             }
-            catch
+            catch (Exception e)
             {
-
+                logger.Error(e, "Exception while unregistering reminder {ReminderName}.", reminderName);
             }
 
             return false;
