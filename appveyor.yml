@@ -1,9 +1,10 @@
-image: Visual Studio 2019
+image: Visual Studio 2017
 configuration: Release
 platform: Any CPU
 
 install:
   - choco install gitversion.portable -pre -y
+  - nuget sources add -Name wasabi -Source https://www.myget.org/F/wasabi/api/v3/index.json
 
 before_build:
   - ps: gitversion /l console /output buildserver
@@ -11,10 +12,19 @@ before_build:
   - ps: $env:AssemblyVersion=$env:GitVersion_AssemblySemVer
   - ps: $env:FileVersion=$env:GitVersion_MajorMinorPatch.0
   - ps: $env:InformationalVersion=$env:GitVersion_InformationalVersion
-  - ps: $env:PackageOutputPath="$env:APPVEYOR_BUILD_FOLDER\pkg"
+  - ps: $env:ServiceFabricPackageName="AspNetStateService-$($env:GitVersion_NuGetVersion)"
+  - ps: $env:BuildPath=(Resolve-Path .)
   - nuget restore
   - dotnet restore
 
-build:
-  verbosity: minimal
-  project: IisWebFarmMonitor.sln
+build_script:
+  - cmd: msbuild.exe IisWebFarmMonitor.sln /t:IisWebFarmMonitor_Fabric:Package
+  - ps: .\Update-PackageVersion.ps1 -PackagePath "$($env:BuildPath)\IisWebFarmMonitor.Fabric\pkg\$($env:Configuration)" -Version $env:GitVersion_NuGetVersion
+
+after_build:
+  - ps: Compress-Archive -Path "$($env:BuildPath)\IisWebFarmMonitor.Fabric\pkg\$($env:Configuration)\*" -DestinationPath "$($env:ServiceFabricPackageName).zip"
+  - ps: Move-Item "$($env:BuildPath)\$($env:ServiceFabricPackageName).zip" "$($env:BuildPath)\$($env:ServiceFabricPackageName).sfpkg"
+
+artifacts:
+  - path: $(ServiceFabricPackageName).sfpkg
+    name: IisWebFarmMonitor
