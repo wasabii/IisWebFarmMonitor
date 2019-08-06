@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System.Fabric;
+using Autofac;
 
 using Cogito.Autofac;
 using Cogito.Extensions.Configuration.Autofac;
@@ -15,6 +16,7 @@ namespace IisWebFarmMonitor.Services
         {
             builder.RegisterFromAttributes(typeof(AssemblyModule).Assembly);
             builder.RegisterConfigurationBinding<SeqOptions>("Seq");
+            builder.Register(ctx => new FabricClient()).SingleInstance();
         }
 
     }

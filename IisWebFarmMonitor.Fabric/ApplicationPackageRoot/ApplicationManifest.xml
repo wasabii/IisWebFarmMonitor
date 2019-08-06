@@ -5,6 +5,7 @@
     <Parameter Name="AccountPassword" DefaultValue="" />
     <Parameter Name="Seq:ServerUrl" DefaultValue="" />
     <Parameter Name="Seq:ApiKey" DefaultValue="" />
+    <Parameter Name="MonitorService_InstanceCount" DefaultValue="1" />
     <Parameter Name="WebService_InstanceCount" DefaultValue="1" />
     <Parameter Name="MonitorActorService_PartitionCount" DefaultValue="3" />
     <Parameter Name="MonitorActorService_MinReplicaSetSize" DefaultValue="2" />
@@ -27,6 +28,11 @@
     </Policies>
   </ServiceManifestImport>
   <DefaultServices>
+    <Service Name="MonitorService" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="MonitorServiceType" InstanceCount="[MonitorService_InstanceCount]">
+        <SingletonPartition />
+      </StatelessService>
+    </Service>
     <Service Name="WebService" ServicePackageActivationMode="ExclusiveProcess">
       <StatelessService ServiceTypeName="WebServiceType" InstanceCount="[WebService_InstanceCount]">
         <SingletonPartition />

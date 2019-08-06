@@ -27,7 +27,7 @@ namespace IisWebFarmMonitor.Services
 
         public LoggerConfiguration Apply(LoggerConfiguration configuration)
         {
-            if (options != null && options.ServerUrl != null && options.ApiKey != null)
+            if (options != null && !string.IsNullOrEmpty(options.ServerUrl) && !string.IsNullOrEmpty(options.ApiKey))
                 return configuration.WriteTo.Seq(options.ServerUrl, apiKey: options.ApiKey);
 
             return configuration;

@@ -58,6 +58,7 @@ namespace IisWebFarmMonitor.Services
             var builder = new ContainerBuilder();
             builder.RegisterAllAssemblyModules();
             builder.RegisterServiceFabricSupport();
+            builder.RegisterStatelessService<MonitorService>("MonitorServiceType");
             builder.RegisterStatelessKestrelWebService<WebService>("WebServiceType");
             builder.RegisterActor<MonitorActor>();
             builder.Populate(s => s.AddLogging());
