@@ -30,6 +30,6 @@ sfctl property put --name-id Application/Service --property-name IisWebFarmMonit
 sfctl property put --name-id Application/Service --property-name IisWebFarmMonitor.Endpoints.{ServiceEndpoint}.Interval --value '{ "Kind":"String", "Data":"00:00:15"  }'
 ```
 
-Additionally, Service Fabric configuration properties exist for `AccountName` and `AccountPassword`. These must be Domain User accounts that have permission to remotely manage the IIS machines under consideration.
+Service Fabric configuration properties exist for `AccountName` and `AccountPassword`. These must be Domain User accounts that have permission to remotely manage the IIS machines under consideration. Additionally, the machines upon which this service runs need the IIS Remote Management tools installed.
 
-Additionally, the machines upon which this service runs need the IIS Remote Management tools installed.
+The `Seq:ServerUrl` and `Seq:ApiKey` configuration properties can be used to enable remote logging to a Seq server.
