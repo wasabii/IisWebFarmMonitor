@@ -102,7 +102,7 @@ namespace IisWebFarmMonitor.Services
                 if (val == null || string.IsNullOrWhiteSpace(val))
                     continue;
 
-                if (Regex.Match(key, @"^IisWebFarmMonitor\.Endpoints\.(\w*)\.(\w+)$") is Match m && m.Success && m.Groups.Count == 3)
+                if (Regex.Match(key, @"^IisWebFarmMonitor\:Endpoints\.(\w*)\.(\w+)$") is Match m && m.Success && m.Groups.Count == 3)
                 {
                     if (options.Endpoints == null)
                         options.Endpoints = new Dictionary<string, MonitorEndpointConfiguration>();
