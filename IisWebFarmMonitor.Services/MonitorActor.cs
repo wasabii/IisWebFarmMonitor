@@ -297,8 +297,6 @@ namespace IisWebFarmMonitor.Services
         /// <returns></returns>
         async Task<IEnumerable<(string Name, Uri Address)>> GetServiceEndpointsAsync(MonitorConfiguration config)
         {
-            var endpoints = new List<(string, Uri)>();
-
             using (var client = new FabricClient())
             {
                 var service = await client.ServiceManager.GetServiceDescriptionAsync(new Uri(Id.GetStringId()));
@@ -309,10 +307,7 @@ namespace IisWebFarmMonitor.Services
                 if (partition == null)
                     return null;
 
-                foreach (var endpoint in GetEndpoints(partition.Endpoints))
-                    endpoints.Add(endpoint);
-
-                return endpoints;
+                return GetEndpoints(partition.Endpoints).ToList();
             }
         }
 
