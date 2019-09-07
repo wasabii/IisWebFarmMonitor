@@ -13,7 +13,7 @@ using IisWebFarmMonitor.Fabric.Interfaces;
 
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
-using Microsoft.ServiceFabric.Services.Runtime;
+
 using Serilog;
 
 namespace IisWebFarmMonitor.Services

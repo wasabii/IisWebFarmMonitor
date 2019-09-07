@@ -4,15 +4,10 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Integration.ServiceFabric;
 
-using Cogito.AspNetCore;
-using Cogito.AspNetCore.Autofac;
 using Cogito.Autofac;
 using Cogito.Autofac.DependencyInjection;
-using Cogito.ServiceFabric;
 using Cogito.ServiceFabric.AspNetCore.Kestrel.Autofac;
 
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IisWebFarmMonitor.Services
@@ -26,41 +21,14 @@ namespace IisWebFarmMonitor.Services
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static Task Main(string[] args)
-        {
-            return FabricEnvironment.IsFabric ? RunFabric(args) : RunConsole(args);
-        }
-
-        /// <summary>
-        /// Runs the application in Console mode.
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        static async Task RunConsole(string[] args)
-        {
-            var builder = new ContainerBuilder();
-            builder.RegisterAllAssemblyModules();
-
-            using (var hostScope = builder.Build())
-                await WebHost.CreateDefaultBuilder(args)
-                    .UseStartup<WebService>(hostScope)
-                    .UseKestrel()
-                    .BuildAndRunAsync();
-        }
-
-        /// <summary>
-        /// Main application entry point.
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        static async Task RunFabric(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = new ContainerBuilder();
             builder.RegisterAllAssemblyModules();
             builder.RegisterServiceFabricSupport();
             builder.RegisterStatelessService<MonitorService>("MonitorServiceType");
             builder.RegisterStatelessKestrelWebService<WebService>("WebServiceType");
-            builder.RegisterActor<MonitorActor>();
+            builder.RegisterActor<MonitorActor>(typeof(MonitorActorService));
             builder.Populate(s => s.AddLogging());
 
             using (builder.Build())

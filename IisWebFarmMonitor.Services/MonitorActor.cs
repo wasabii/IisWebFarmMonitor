@@ -4,6 +4,7 @@ using System.Fabric;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Cogito;
 using Cogito.Collections;
 
@@ -95,7 +96,7 @@ namespace IisWebFarmMonitor.Services
                     return true;
                 }
             }
-            catch (Exception e)
+            catch
             {
 
             }
