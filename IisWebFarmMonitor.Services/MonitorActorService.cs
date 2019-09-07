@@ -55,7 +55,7 @@ namespace IisWebFarmMonitor.Services
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        protected override Task RunAsync(CancellationToken cancellationToken)
+        protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace IisWebFarmMonitor.Services
                 if (IsIisManagementAvailable() == false)
                     throw new InvalidOperationException("Missing IIS-ManagementConsole Windows Feature. Required for remote IIS management.");
 
-                return base.RunAsync(cancellationToken);
+                await base.RunAsync(cancellationToken);
             }
             catch (Exception e)
             {
