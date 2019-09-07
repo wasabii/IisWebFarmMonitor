@@ -97,6 +97,8 @@ namespace IisWebFarmMonitor.Services
 
             foreach (var property in await GetNamedPropertiesAsync(service.ServiceName, cancellationToken))
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var key = property.Metadata.PropertyName;
                 var val = property.GetValue<string>();
                 if (val == null || string.IsNullOrWhiteSpace(val))
@@ -155,7 +157,7 @@ namespace IisWebFarmMonitor.Services
         /// <returns></returns>
         async Task<IEnumerable<Application>> GetApplications(CancellationToken cancellationToken)
         {
-            return await fabric.QueryManager.GetApplicationListAsync();
+            return await fabric.QueryManager.GetApplicationListAsync(null, null, TimeSpan.FromMinutes(1), cancellationToken);
         }
 
         /// <summary>
@@ -166,7 +168,7 @@ namespace IisWebFarmMonitor.Services
         /// <returns></returns>
         async Task<IEnumerable<Service>> GetServices(Uri applicationName, CancellationToken cancellationToken)
         {
-            return await fabric.QueryManager.GetServiceListAsync(applicationName);
+            return await fabric.QueryManager.GetServiceListAsync(applicationName, null, null, TimeSpan.FromMinutes(1), cancellationToken);
         }
 
         /// <summary>

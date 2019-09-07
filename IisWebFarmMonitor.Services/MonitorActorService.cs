@@ -9,6 +9,8 @@ using Cogito.Autofac;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
 
+using Serilog;
+
 namespace IisWebFarmMonitor.Services
 {
 
@@ -20,6 +22,7 @@ namespace IisWebFarmMonitor.Services
     {
 
         readonly FabricClient fabric;
+        readonly ILogger logger;
 
         /// <summary>
         /// Initializes a new instance.
@@ -27,6 +30,7 @@ namespace IisWebFarmMonitor.Services
         /// <param name="context"></param>
         /// <param name="actorTypeInfo"></param>
         /// <param name="fabric"></param>
+        /// <param name="logger"></param>
         /// <param name="actorFactory"></param>
         /// <param name="stateManagerFactory"></param>
         /// <param name="stateProvider"></param>
@@ -35,6 +39,7 @@ namespace IisWebFarmMonitor.Services
             StatefulServiceContext context,
             ActorTypeInformation actorTypeInfo,
             FabricClient fabric,
+            ILogger logger,
             Func<ActorService, ActorId, ActorBase> actorFactory = null,
             Func<ActorBase, IActorStateProvider, IActorStateManager> stateManagerFactory = null,
             IActorStateProvider stateProvider = null,
@@ -47,15 +52,24 @@ namespace IisWebFarmMonitor.Services
                 settings)
         {
             this.fabric = fabric ?? throw new ArgumentNullException(nameof(fabric));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         protected override Task RunAsync(CancellationToken cancellationToken)
         {
-            // check for existance of IIS before allowing service to run
-            if (IsIisManagementAvailable() == false)
-                throw new InvalidOperationException("Missing IIS-ManagementConsole Windows Feature. Required for remote IIS management.");
+            try
+            {
+                // check for existance of IIS before allowing service to run
+                if (IsIisManagementAvailable() == false)
+                    throw new InvalidOperationException("Missing IIS-ManagementConsole Windows Feature. Required for remote IIS management.");
 
-            return base.RunAsync(cancellationToken);
+                return base.RunAsync(cancellationToken);
+            }
+            catch (Exception e)
+            {
+                logger.Error(e, "Unhandled exception in RunAsync.");
+                throw;
+            }
         }
 
         /// <summary>
