@@ -5,6 +5,8 @@ using Cogito.Serilog;
 
 using IisWebFarmMonitor.Services.Configuration;
 
+using Microsoft.Extensions.Options;
+
 using Serilog;
 
 namespace IisWebFarmMonitor.Services
@@ -14,22 +16,22 @@ namespace IisWebFarmMonitor.Services
     class SerilogSeqConfigurator : ILoggerConfigurator
     {
 
-        readonly SeqOptions options;
+        readonly IOptions<SeqOptions> options;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="options"></param>
-        public SerilogSeqConfigurator(SeqOptions options)
+        public SerilogSeqConfigurator(IOptions<SeqOptions> options)
         {
             this.options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public LoggerConfiguration Apply(LoggerConfiguration configuration)
         {
-            if (options != null && !string.IsNullOrEmpty(options.ServerUrl) && !string.IsNullOrEmpty(options.ApiKey))
-                return configuration.WriteTo.Seq(options.ServerUrl, apiKey: options.ApiKey);
-
+            if (options.Value != null && !string.IsNullOrEmpty(options.Value.ServerUrl) && !string.IsNullOrEmpty(options.Value.ApiKey))
+                return configuration.WriteTo.Seq(options.Value.ServerUrl, apiKey: options.Value.ApiKey);
+            
             return configuration;
         }
 
